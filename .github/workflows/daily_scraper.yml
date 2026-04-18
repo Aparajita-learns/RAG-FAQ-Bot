@@ -38,9 +38,9 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git rebase origin/main
-          git add data/raw_html/
+          #git fetch origin main
+          #git rebase origin/main
+          #git add data/raw_html/
           git add -A
           git commit -m "chore: auto-update raw html via daily scraper" || true
           git push origin HEAD:main
