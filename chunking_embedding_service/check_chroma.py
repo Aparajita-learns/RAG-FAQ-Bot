@@ -5,18 +5,20 @@ def check_chroma_state():
     chroma_host = os.environ.get("CHROMA_HOST", "api.trychroma.com")
     chroma_api_key = os.environ.get("CHROMA_API_KEY")
     chroma_database = os.environ.get("CHROMA_DATABASE", "RAG_chatbot_database")
+    chroma_tenant = os.environ.get("CHROMA_TENANT", "55f74872-3fe6-4e35-ab34-fd70ca9022fc")
 
     if not chroma_api_key:
         print("ERROR: CHROMA_API_KEY environment variable not found.")
         return
 
-    print(f"Connecting to Chroma Cloud (DB: {chroma_database}) at: {chroma_host}")
+    print(f"Connecting to Chroma Cloud (Tenant: {chroma_tenant}, DB: {chroma_database}) at: {chroma_host}")
     
     try:
         # Initialize the Chroma HTTP client
         client = chromadb.HttpClient(
             host=chroma_host,
             headers={"x-chroma-token": chroma_api_key},
+            tenant=chroma_tenant,
             database=chroma_database
         )
 
