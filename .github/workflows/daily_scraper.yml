@@ -56,3 +56,10 @@ jobs:
           CHROMA_HOST: ${{ secrets.CHROMA_HOST }}
         run: |
           python chunking_embedding_service/embedder.py
+
+      - name: Verify Chroma Cloud State
+        env:
+          CHROMA_API_KEY: ${{ secrets.CHROMA_API_KEY }}
+          CHROMA_HOST: ${{ secrets.CHROMA_HOST }}
+        run: |
+          python chunking_embedding_service/check_chroma.py
