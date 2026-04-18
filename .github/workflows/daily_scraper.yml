@@ -54,6 +54,7 @@ jobs:
         env:
           CHROMA_API_KEY: ${{ secrets.CHROMA_API_KEY }}
           CHROMA_HOST: ${{ secrets.CHROMA_HOST }}
+          CHROMA_DATABASE: "RAG_chatbot_database"
         run: |
           python chunking_embedding_service/embedder.py
 
@@ -61,5 +62,6 @@ jobs:
         env:
           CHROMA_API_KEY: ${{ secrets.CHROMA_API_KEY }}
           CHROMA_HOST: ${{ secrets.CHROMA_HOST }}
+          CHROMA_DATABASE: "RAG_chatbot_database"
         run: |
           python chunking_embedding_service/check_chroma.py

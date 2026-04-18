@@ -78,6 +78,7 @@ def embed_and_store():
     
     chroma_host = os.environ.get("CHROMA_HOST", "api.trychroma.com")
     chroma_api_key = os.environ.get("CHROMA_API_KEY", "")
+    chroma_database = os.environ.get("CHROMA_DATABASE", "RAG_chatbot_database")
     
     if not chroma_api_key:
         print("WARNING: CHROMA_API_KEY environment variable not found. Cloud upsertion will fail.")
@@ -85,7 +86,8 @@ def embed_and_store():
     # Initialize the Chroma HTTP client
     chroma_client = chromadb.HttpClient(
         host=chroma_host,
-        headers={"x-chroma-token": chroma_api_key}
+        headers={"x-chroma-token": chroma_api_key},
+        database=chroma_database
     )
     
     # Upsert documents via LangChain Chroma wrapper
