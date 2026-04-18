@@ -74,7 +74,7 @@ def embed_and_store():
     )
 
     # 4. Vector Database Upsertion (Chroma Cloud)
-    print("Upserting to Chroma Cloud...")
+    print(f"Upserting {len(chunks)} chunks to Chroma Cloud...")
     
     chroma_host = os.environ.get("CHROMA_HOST", "api.trychroma.com")
     chroma_api_key = os.environ.get("CHROMA_API_KEY", "")
@@ -92,14 +92,25 @@ def embed_and_store():
         tenant=chroma_tenant
     )
     
-    # Upsert documents via LangChain Chroma wrapper
-    vectorstore = Chroma.from_documents(
-        documents=chunks, 
-        embedding=embeddings,
+    # We will use smaller batches to provide better logging feedback and prevent timeouts
+    batch_size = 50
+    print(f"Total batches to process: {(len(chunks) + batch_size - 1) // batch_size}")
+
+    # Use the LangChain Chroma wrapper
+    # We initialize it first, then add documents in batches
+    vectorstore = Chroma(
         client=chroma_client,
-        collection_name="mutual_fund_faqs"
+        collection_name="mutual_fund_faqs",
+        embedding_function=embeddings
     )
-    print("Successfully embedded and synced to Chroma Cloud.")
+
+    for i in range(0, len(chunks), batch_size):
+        batch = chunks[i:i + batch_size]
+        print(f"  --> Pushing batch {i//batch_size + 1}: Chunks {i} to {min(i + batch_size, len(chunks))}...")
+        vectorstore.add_documents(batch)
+        print(f"      [OK] Batch {i//batch_size + 1} synced.")
+
+    print("\nSuccessfully embedded and synced all chunks to Chroma Cloud.")
 
 if __name__ == "__main__":
     embed_and_store()
