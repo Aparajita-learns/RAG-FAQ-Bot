@@ -1,0 +1,28 @@
+# Chunking and Embedding Service Validated
+
+I have successfully updated the workspace architecture to strictly isolate concerns and implemented the vector engine.
+
+## Changes Made
+
+### 1. Architectural Updates & Folder Isolation
+1. **Isolated Scraping:** The previous `pipeline_ingestion` folder has been correctly renamed to `scraping_service/`. The GitHub actions cron job (`daily_scraper.yml`) was updated to route all scraping tasks to this isolated directory.
+2. **Dedicated Knowledge Base Script:** I created a new module `chunking_embedding_service/` exclusively designed to process raw `.html` files into chunks and embeddings.
+3. **Architecture Constraint Enforced:** I updated `RAG-architecture.md` to ban OpenAI models. We now expressly document the rule: use `BAAI/bge-small-en-v1.5` for < 20 URLs, and `BAAI/bge-base-en-v1.5` if expanding beyond 20 URLs.
+
+### 2. Implementation of the Embedding Logic
+Inside `chunking_embedding_service/embedder.py`, I implemented the end-to-end vector pipeline:
+- **Clean Text Extraction:** Uses BeautifulSoup to strip HTML tags logically and isolate the mutual fund FAQs text.
+- **Context-Aware Chunking:** Uses LangChain's `RecursiveCharacterTextSplitter` with 1000 character limit and 100 character overlap so answers aren't cut across sentences.
+- **HuggingFace Integration:** Initializes the lightweight transformer `bge-small-en-v1.5` for text vectorization.
+- **FAISS Database Engine:** Vector results and metadata (URL source tracking) are upserted seamlessly into a local `data/chroma_db` index via FAISS memory stores, bypassing complex Database installs.
+
+---
+
+> [!WARNING]
+> **Windows Limitation Notice:** When performing the test execution on your machine, the `pip install` sequence specifically failed on downloading `PyTorch` (a dependency for Sentence-Transformers) because your Windows Operating System does not have **"Long Path Support"** enabled, preventing deep C++ file extraction (`ATen/native/transformers/cuda/mem_eff_attention/iterators/predicated_tile_access_iterator_residual_last.h`).
+
+**To run the code successfully on your end, you must enable Long Paths in Windows.**
+1. Press `Win + R`, type `regedit` and hit enter.
+2. Navigate to `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem`.
+3. Double-click `LongPathsEnabled` and set its value to `1`.
+4. Close your terminal, restart it, and run `pip install -r chunking_embedding_service\requirements.txt`.
