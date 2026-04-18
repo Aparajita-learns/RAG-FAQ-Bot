@@ -82,23 +82,20 @@ def embed_and_store():
     if not chroma_api_key:
         print("WARNING: CHROMA_API_KEY environment variable not found. Cloud upsertion will fail.")
         
-    try:
-        # Initialize the Chroma HTTP client
-        chroma_client = chromadb.HttpClient(
-            host=chroma_host,
-            headers={"x-chroma-token": chroma_api_key}
-        )
-        
-        # Upsert documents via LangChain Chroma wrapper
-        vectorstore = Chroma.from_documents(
-            documents=chunks, 
-            embedding=embeddings,
-            client=chroma_client,
-            collection_name="mutual_fund_faqs"
-        )
-        print("Successfully embedded and synced to Chroma Cloud.")
-    except Exception as e:
-        print(f"Failed to sync to Chroma Cloud: {e}")
+    # Initialize the Chroma HTTP client
+    chroma_client = chromadb.HttpClient(
+        host=chroma_host,
+        headers={"x-chroma-token": chroma_api_key}
+    )
+    
+    # Upsert documents via LangChain Chroma wrapper
+    vectorstore = Chroma.from_documents(
+        documents=chunks, 
+        embedding=embeddings,
+        client=chroma_client,
+        collection_name="mutual_fund_faqs"
+    )
+    print("Successfully embedded and synced to Chroma Cloud.")
 
 if __name__ == "__main__":
     embed_and_store()
