@@ -7,6 +7,9 @@ def check_chroma_state():
     chroma_database = os.environ.get("CHROMA_DATABASE", "RAG_chatbot_database")
     chroma_tenant = os.environ.get("CHROMA_TENANT", "55f74872-3fe6-4e35-ab34-fd70ca9022fc")
 
+    if not chroma_host.startswith("http"):
+        chroma_host = f"https://{chroma_host}"
+
     if not chroma_api_key:
         print("ERROR: CHROMA_API_KEY environment variable not found.")
         return
@@ -19,7 +22,8 @@ def check_chroma_state():
             host=chroma_host,
             headers={"x-chroma-token": chroma_api_key},
             tenant=chroma_tenant,
-            database=chroma_database
+            database=chroma_database,
+            ssl=True
         )
 
         # List all collections

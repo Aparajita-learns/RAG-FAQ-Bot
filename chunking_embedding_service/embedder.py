@@ -74,41 +74,73 @@ def embed_and_store():
     )
 
     # 4. Vector Database Upsertion (Chroma Cloud)
-    print(f"Upserting {len(chunks)} chunks to Chroma Cloud...")
+    print(f"\n[DEBUG] Starting cloud sync process for {len(chunks)} chunks...")
     
     chroma_host = os.environ.get("CHROMA_HOST", "api.trychroma.com")
+    # Ensure host starts with https:// for cloud connections
+    if not chroma_host.startswith("http"):
+        chroma_host = f"https://{chroma_host}"
+        
     chroma_api_key = os.environ.get("CHROMA_API_KEY", "")
     chroma_database = os.environ.get("CHROMA_DATABASE", "RAG_chatbot_database")
     chroma_tenant = os.environ.get("CHROMA_TENANT", "55f74872-3fe6-4e35-ab34-fd70ca9022fc")
     
+    print(f"[DEBUG] Target Host: {chroma_host}")
+    print(f"[DEBUG] Target Tenant: {chroma_tenant}")
+    print(f"[DEBUG] Target Database: {chroma_database}")
+    
     if not chroma_api_key:
         print("WARNING: CHROMA_API_KEY environment variable not found. Cloud upsertion will fail.")
-        
-    # Initialize the Chroma HTTP client
-    chroma_client = chromadb.HttpClient(
-        host=chroma_host,
-        headers={"x-chroma-token": chroma_api_key},
-        database=chroma_database,
-        tenant=chroma_tenant
-    )
     
-    # We will use smaller batches to provide better logging feedback and prevent timeouts
-    batch_size = 50
-    print(f"Total batches to process: {(len(chunks) + batch_size - 1) // batch_size}")
+    import requests
+    print(f"[DEBUG] Testing reachability of {chroma_host} via simple GET...")
+    try:
+        # Use a short timeout to avoid hanging
+        resp = requests.get(chroma_host, timeout=10)
+        print(f"[DEBUG] Host is reachable. Status Code: {resp.status_code}")
+    except Exception as e:
+        print(f"[WARNING] Could not reach host via HTTP GET: {e}")
+        print("[DEBUG] Proceeding anyway to let HttpClient try...")
 
-    # Use the LangChain Chroma wrapper
-    # We initialize it first, then add documents in batches
-    vectorstore = Chroma(
-        client=chroma_client,
-        collection_name="mutual_fund_faqs",
-        embedding_function=embeddings
-    )
+    print("[DEBUG] Initializing chromadb.HttpClient (SSL=True)...")
+    try:
+        # Initialize the Chroma HTTP client with explicit SSL
+        chroma_client = chromadb.HttpClient(
+            host=chroma_host,
+            headers={"x-chroma-token": chroma_api_key},
+            database=chroma_database,
+            tenant=chroma_tenant,
+            ssl=True
+        )
+        print("[DEBUG] HttpClient initialized successfully.")
+    except Exception as e:
+        print(f"[ERROR] Failed to initialize HttpClient: {e}")
+        return
+
+    print("[DEBUG] Initializing LangChain Chroma wrapper...")
+    try:
+        # Use the LangChain Chroma wrapper
+        vectorstore = Chroma(
+            client=chroma_client,
+            collection_name="mutual_fund_faqs",
+            embedding_function=embeddings
+        )
+        print("[DEBUG] LangChain wrapper initialized.")
+    except Exception as e:
+        print(f"[ERROR] Failed to initialize LangChain wrapper: {e}")
+        return
+
+    batch_size = 50
+    print(f"[DEBUG] Total batches to process: {(len(chunks) + batch_size - 1) // batch_size}")
 
     for i in range(0, len(chunks), batch_size):
         batch = chunks[i:i + batch_size]
         print(f"  --> Pushing batch {i//batch_size + 1}: Chunks {i} to {min(i + batch_size, len(chunks))}...")
-        vectorstore.add_documents(batch)
-        print(f"      [OK] Batch {i//batch_size + 1} synced.")
+        try:
+            vectorstore.add_documents(batch)
+            print(f"      [OK] Batch {i//batch_size + 1} synced.")
+        except Exception as e:
+            print(f"      [FAILED] Batch {i//batch_size + 1} failed: {e}")
 
     print("\nSuccessfully embedded and synced all chunks to Chroma Cloud.")
 
