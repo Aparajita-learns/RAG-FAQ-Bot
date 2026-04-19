@@ -1,5 +1,5 @@
 import os
-import requests
+from huggingface_hub import InferenceClient
 from typing import List
 from langchain_groq import ChatGroq
 from .guardrails import Guardrails
@@ -23,22 +23,19 @@ class QueryProcessor:
         if not hf_token:
             raise ValueError("HUGGINGFACEHUB_API_TOKEN not found in environment.")
 
-        # Custom Lightweight Embedding Client (No heavy dependencies)
+        # Official Lightweight Inference Client
         class RemoteEmbeddings:
             def __init__(self, token, model_name):
-                self.token = token
-                self.api_url = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{model_name}"
+                self.client = InferenceClient(api_key=token)
+                self.model_name = model_name
             
-            def _get_embedding(self, text):
-                headers = {"Authorization": f"Bearer {self.token}"}
-                response = requests.post(self.api_url, headers=headers, json={"inputs": text})
-                return response.json()
-
             def embed_documents(self, texts: List[str]) -> List[List[float]]:
-                return [self._get_embedding(t) for t in texts]
+                # Inference API handles batch inputs nicely
+                return self.client.feature_extraction(texts, model=self.model_name).tolist()
 
             def embed_query(self, text: str) -> List[float]:
-                return self._get_embedding(text)
+                # Returns a single list of floats
+                return self.client.feature_extraction(text, model=self.model_name).tolist()
 
         embeddings = RemoteEmbeddings(hf_token, "BAAI/bge-small-en-v1.5")
 
