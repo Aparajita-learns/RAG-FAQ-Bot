@@ -1,0 +1,56 @@
+# Walkthrough: Retrieval & Generation Pipeline
+
+I have successfully implemented the final logic and UI layer for your Mutual Fund FAQ Assistant. This completion covers **Part C (Retrieval & Generation)** and **Part E (Application & UI Layer)** of your architecture.
+
+## 🚀 Key Features
+
+### 1. Robust Guardrails
+The system now includes an automated multi-layer security check for every query:
+- **PII Scrubber**: Automatically detects and redacts PAN cards, Aadhaar numbers, emails, and phone numbers.
+- **Intent Classifier**: Uses **Groq (Llama 3)** to identify if a user is asking for investment advice or relative comparisons. If detected, it politely refuses and provides a link to AMFI.
+
+### 2. Multi-Threaded Chat UI
+The frontend is built with **Streamlit** and includes:
+- **Persistent Conversations**: Your chat history is saved in a local SQLite database (`chat_history.db`), allowing you to manage multiple independent threads in the sidebar.
+- **Template Questions**: Quick-access buttons for common queries like "Exit Load" or "Lock-in Period."
+- **Compliance Display**: A permanent "Facts-only" warning banner and a disclaimer on every response.
+
+### 3. Factual RAG Engine
+- **Source Citations**: Every answer includes a direct link to the HDFC fund page it was retrieved from.
+- **Brevity**: Answers are strictly limited to a maximum of 3 sentences.
+- **Syncing**: The system pulls the latest vectors from your **Chroma Cloud** account.
+
+## 🛠️ Setup & Execution
+
+### 1. Install Dependencies
+Run these commands in your terminal:
+```bash
+pip install -r pipeline_retrieval/requirements.txt
+pip install -r app_ui/requirements.txt
+```
+
+### 2. Set API Keys
+Ensure your `.env` file contains your **Groq API Key**:
+```env
+GROQ_API_KEY=your_groq_key_here
+CHROMA_API_KEY=your_chroma_key_here
+CHROMA_HOST=api.trychroma.com
+CHROMA_TENANT=55f74872-3fe6-4e35-ab34-fd70ca9022fc
+CHROMA_DATABASE=RAG_chatbot_database
+```
+
+### 3. Launch the App
+Start the chatbot by running:
+```bash
+streamlit run app_ui/chatbot_app.py
+```
+
+## ✅ Verification Results
+
+I've included a script `smoke_test_retrieval.py` that confirms the following:
+- [x] **Factual Retrieval**: Success (Data retrieved from Chroma Cloud)
+- [x] **PII Blocking**: Success (PAN/Aadhaar redacted)
+- [x] **Advisory Refusal**: Success ("Which fund is better?" refused)
+
+> [!TIP]
+> **First Run**: When you first start the app, it will download the BGE embedding model (~90MB). This is a one-time process and will be cached for future use.

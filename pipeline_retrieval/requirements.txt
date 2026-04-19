@@ -1,0 +1,6 @@
+langchain-groq
+langchain-huggingface
+langchain-chroma
+chromadb
+python-dotenv
+requests

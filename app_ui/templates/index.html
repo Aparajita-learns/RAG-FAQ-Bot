@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MF Assistant | Facts-Only Q&A</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Mutual Fund FAQ Assistant</h2>
+                <button id="new-chat-btn" class="primary-btn">+ New Chat</button>
+            </div>
+            <div class="thread-list" id="thread-list">
+                <!-- Threads will be loaded here -->
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-area">
+            <header class="chat-header">
+                <div class="disclaimer-banner">
+                    <span>⚠️ **Disclaimer:** Facts-only. No investment advice or recommendations.</span>
+                </div>
+            </header>
+
+            <div class="messages-container" id="chat-messages">
+                <div class="welcome-card">
+                    <h1>📈 Mutual Fund FAQ Assistant</h1>
+                    <p>I provide objective data from official HDFC Mutual Fund documents.</p>
+                    <div class="example-questions">
+                        <button class="example-btn">What is the exit load for HDFC Mid-Cap fund?</button>
+                        <button class="example-btn">Minimum SIP for HDFC Large Cap?</button>
+                        <button class="example-btn">Lock-in for HDFC ELSS fund?</button>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="input-area">
+                <form id="chat-form">
+                    <input type="text" id="user-input" placeholder="Ask about HDFC Mutual Funds..." autocomplete="off">
+                    <button type="submit" id="send-btn">Send</button>
+                </form>
+                <div class="footer-note">
+                    Powered by RAG Stack: Llama 3.1 + Chroma Cloud
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <script src="/static/js/script.js"></script>
+</body>
+</html>
