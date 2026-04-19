@@ -64,6 +64,24 @@ A dedicated sub-system handles how raw scraped content is processed and represen
    - Following extraction, embeddings and metadata payloads are pushed securely to **Chroma Cloud (trychroma.com)**. 
    - The GitHub Action runner authenticates using a `CHROMA_API_KEY` to sync the latest daily data, ensuring the web application queries a managed cloud database rather than a local file.
 
+---
+
+## 4. Automation Scheduler (GitHub Actions)
+
+The entire ingestion pipeline is automated via GitHub Actions to ensure the bot always has the most current Mutual Fund data.
+
+- **Trigger:** Daily at **9:15 AM IST** (03:45 UTC).
+- **Execution Order:**
+  1. **Scraping Service:** Fetches latest HTML from target Groww URLs.
+  2. **Data Persistence:** Automatically commits raw HTML updates back to the GitHub repository.
+  3. **Chunking & Embedding Service:**
+     - Reads the fresh HTML files.
+     - Performs semantic chunking (1000 char size).
+     - Generates BGE embeddings locally on the GH runner.
+     - Upserts/updates the **Chroma Cloud** database collection.
+  4. **Verification:** Runs a diagnostic check to confirm the total document count in the cloud.
+
+
 
 ### C. Retrieval & Generation Pipeline
 This pipeline processes user queries in real-time.
