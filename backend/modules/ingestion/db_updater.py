@@ -1,11 +1,10 @@
 import os
 import chromadb
-from langchain_chroma import Chroma
 
 class DBUpdater:
     def __init__(self):
-        # Configure Chroma Cloud credentials from environmental variables
-        self.host = os.environ.get("CHROMA_HOST", "https://api.trychroma.com")
+        # Configure Chroma Cloud host (api.chromadb.com)
+        self.host = os.environ.get("CHROMA_HOST", "api.chromadb.com")
         if not self.host.startswith("http"):
             self.host = f"https://{self.host}"
             
@@ -14,7 +13,7 @@ class DBUpdater:
         self.tenant = os.environ.get("CHROMA_TENANT", "55f74872-3fe6-4e35-ab34-fd70ca9022fc")
 
     def get_client(self):
-        """Initializes the Chroma HTTP Client."""
+        """Initializes the lightweight Chroma HTTP Client."""
         return chromadb.HttpClient(
             host=self.host,
             headers={"x-chroma-token": self.api_key},
@@ -24,20 +23,25 @@ class DBUpdater:
         )
 
     def upsert_documents(self, chunks, embedding_function, collection_name="mutual_fund_faqs"):
-        """Syncs provide chunks to Chroma Cloud in batches."""
+        """Syncs provide chunks to Chroma Cloud directly using the SDK."""
         client = self.get_client()
-        vectorstore = Chroma(
-            client=client,
-            collection_name=collection_name,
-            embedding_function=embedding_function
-        )
+        collection = client.get_or_create_collection(name=collection_name)
 
-        batch_size = 50
-        print(f"Syncing {len(chunks)} chunks in batches of {batch_size}...")
+        print(f"Syncing {len(chunks)} chunks...")
         
-        for i in range(0, len(chunks), batch_size):
-            batch = chunks[i:i + batch_size]
-            vectorstore.add_documents(batch)
-            print(f"  [OK] Synced batch {i//batch_size + 1}")
+        # Prepare data for Chroma SDK
+        documents = [c.page_content for c in chunks]
+        metadatas = [c.metadata for c in chunks]
+        ids = [f"id_{i}_{os.urandom(4).hex()}" for i in range(len(chunks))]
+        
+        # Generate embeddings using our RemoteEmbeddings class
+        embeddings = embedding_function.embed_documents(documents)
+
+        collection.add(
+            ids=ids,
+            embeddings=embeddings,
+            metadatas=metadatas,
+            documents=documents
+        )
         
         print("Cloud Sync Complete.")

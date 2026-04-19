@@ -1,10 +1,10 @@
 # Specialized for Low-Memory environments (512MB RAM)
-# Using Hugging Face Inference API instead of local models
+# Eliminates 'tokenizers' and Rust dependencies entirely
 
 langchain-community==0.0.34
 langchain-groq
-langchain-chroma
-chromadb>=0.5.3
+# Use lightweight HTTP client instead of full chromadb
+chromadb-client>=0.5.0
 beautifulsoup4==4.12.3
 requests==2.31.0
 python-dotenv
