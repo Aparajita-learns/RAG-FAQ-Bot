@@ -9,7 +9,7 @@ load_dotenv()
 # Initialize the modular RAG engine
 processor = QueryProcessor()
 
-# Initialize the UI Server with the processor
+# Initialize the UI Server as a pure API
 ui_server = UIServer(processor=processor)
 
 # Expose the FastAPI app for uvicorn
@@ -17,6 +17,6 @@ app = ui_server.app
 
 if __name__ == "__main__":
     import uvicorn
-    # To run: python app_api.py
-    # Or: uvicorn app_api:app --reload
+    # To run local for development: python main.py
+    # For production deployment: uvicorn main:app --host 0.0.0.0 --port 8000
     uvicorn.run(app, host="0.0.0.0", port=8000)

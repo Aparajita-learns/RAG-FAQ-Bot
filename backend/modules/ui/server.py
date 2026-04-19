@@ -3,22 +3,24 @@ import uuid
 import sqlite3
 from datetime import datetime
 from typing import List
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 class UIServer:
     def __init__(self, processor, db_path="chat_history.db"):
         self.app = FastAPI(title="Mutual Fund FAQ API")
+        
+        # Enable CORS for Vercel deployment
+        self.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"], # In production, replace with your Vercel URL
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+        
         self.processor = processor
         self.db_path = db_path
-        
-        # Setup static and templates relative to this file's location
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        self.app.mount("/static", StaticFiles(directory=os.path.join(base_dir, "static")), name="static")
-        self.templates = Jinja2Templates(directory=os.path.join(base_dir, "templates"))
         
         self.init_db()
         self.setup_routes()
@@ -39,9 +41,9 @@ class UIServer:
     def setup_routes(self):
         app = self.app
 
-        @app.get("/", response_class=HTMLResponse)
-        async def get_index(request: Request):
-            return self.templates.TemplateResponse(request=request, name="index.html")
+        @app.get("/")
+        async def root():
+            return {"status": "Backend is running", "api_version": "v1"}
 
         @app.get("/api/threads")
         async def list_threads():

@@ -18,6 +18,7 @@ def run_ingestion():
     
     # 3. Process Files
     print("\n--- Phase 2: Chunking & Embedding ---")
+    # Files are now in backend/data/raw_html (or wherever project root is)
     raw_data_path = os.path.join(os.getcwd(), "data", "raw_html")
     print(f"Loading files from {raw_data_path}...")
     
@@ -26,7 +27,7 @@ def run_ingestion():
         print("No chunks created. Check if data/raw_html is empty.")
         return
         
-    # 3. Update DB
+    # 4. Update DB
     db_updater.upsert_documents(
         chunks=chunks, 
         embedding_function=chunker.get_embedding_function()

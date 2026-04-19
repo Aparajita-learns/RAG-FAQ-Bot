@@ -1,3 +1,6 @@
+// Replace with your actual backend URL after deployment (e.g., https://your-backend.render.com)
+const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:8000' : '';
+
 let currentThreadId = null;
 
 // DOM Elements
@@ -10,7 +13,7 @@ const newChatBtn = document.getElementById('new-chat-btn');
 // --- THREAD MANAGEMENT ---
 
 async function loadThreads() {
-    const response = await fetch('/api/threads');
+    const response = await fetch(`${API_BASE_URL}/api/threads`);
     const threads = await response.json();
     
     threadList.innerHTML = '';
@@ -24,7 +27,7 @@ async function loadThreads() {
 }
 
 async function createNewChat() {
-    const response = await fetch('/api/threads/new', { method: 'POST' });
+    const response = await fetch(`${API_BASE_URL}/api/threads/new`, { method: 'POST' });
     const newThread = await response.json();
     currentThreadId = newThread.thread_id;
     
@@ -38,7 +41,7 @@ async function createNewChat() {
 async function switchThread(threadId) {
     currentThreadId = threadId;
     
-    const response = await fetch(`/api/history/${threadId}`);
+    const response = await fetch(`${API_BASE_URL}/api/history/${threadId}`);
     const history = await response.json();
     
     chatMessages.innerHTML = '';
@@ -88,7 +91,7 @@ async function sendMessage(text) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
     try {
-        const response = await fetch('/api/chat', {
+        const response = await fetch(`${API_BASE_URL}/api/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: text, thread_id: currentThreadId })
@@ -130,7 +133,7 @@ newChatBtn.onclick = createNewChat;
 
 // Initialize
 (async () => {
-    const response = await fetch('/api/threads');
+    const response = await fetch(`${API_BASE_URL}/api/threads`);
     const threads = await response.json();
     if (threads.length > 0) {
         switchThread(threads[0].thread_id);
