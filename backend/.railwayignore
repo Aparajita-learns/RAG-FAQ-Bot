@@ -1,0 +1,18 @@
+# Ignore local caches and heavy files to reduce build size
+__pycache__/
+*.pyc
+.venv/
+env/
+.env
+data/
+chat_history.db
+*.html
+.git/
+.github/
+README.md
+implementation_plan.md
+deployment_guide.md
+walkthrough.md
+task.md
+node_modules/
+.ipynb_checkpoints/

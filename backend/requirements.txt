@@ -1,15 +1,16 @@
-﻿beautifulsoup4==4.12.3
-chromadb
-chromadb==0.5.0
-langchain==0.1.16
-langchain-chroma
+# Use CPU-only versions to keep build size small (<1GB)
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+torch==2.2.1+cpu
+sentence-transformers==2.7.0
+langchain-huggingface==0.0.1
 langchain-community==0.0.34
 langchain-groq
-langchain-huggingface
-langchain-huggingface==0.0.1
-pandas
-python-dotenv
-requests
+langchain-chroma
+chromadb==0.5.0
+beautifulsoup4==4.12.3
 requests==2.31.0
-sentence-transformers==2.7.0
-streamlit
+python-dotenv
+pandas
+uvicorn
+fastapi
