@@ -1,7 +1,7 @@
 # Use CPU-only versions to keep build size small (<1GB)
 --extra-index-url https://download.pytorch.org/whl/cpu
 
-torch==2.2.1+cpu
+torch>=2.5.0+cpu
 sentence-transformers==2.7.0
 langchain-huggingface==0.0.1
 langchain-community==0.0.34
