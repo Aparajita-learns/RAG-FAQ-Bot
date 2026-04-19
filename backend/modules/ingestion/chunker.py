@@ -2,7 +2,7 @@ import os
 import glob
 from bs4 import BeautifulSoup
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceInferenceAPIEmbeddings
 
 class Chunker:
     def __init__(self, chunk_size=1000, chunk_overlap=100):
@@ -12,11 +12,16 @@ class Chunker:
             length_function=len
         )
         # Using bge-small-en-v1.5 as per architecture rules
+        # Using hosted Inference API to save memory
         self.model_name = "BAAI/bge-small-en-v1.5"
-        self.embeddings = HuggingFaceEmbeddings(
-            model_name=self.model_name,
-            model_kwargs={'device': 'cpu'},
-            encode_kwargs={'normalize_embeddings': True}
+        hf_token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
+        if not hf_token:
+            # We fail early if token is missing
+            raise ValueError("HUGGINGFACEHUB_API_TOKEN not found for Chunker.")
+
+        self.embeddings = HuggingFaceInferenceAPIEmbeddings(
+            api_key=hf_token,
+            model_name=self.model_name
         )
 
     def parse_html(self, filepath):

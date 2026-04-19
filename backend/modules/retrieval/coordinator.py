@@ -1,6 +1,6 @@
 import os
 from langchain_groq import ChatGroq
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceInferenceAPIEmbeddings
 from .guardrails import Guardrails
 from .search import Searcher
 from .augmenter import Augmenter
@@ -18,10 +18,13 @@ class QueryProcessor:
             groq_api_key=groq_api_key
         )
         
-        embeddings = HuggingFaceEmbeddings(
-            model_name="BAAI/bge-small-en-v1.5",
-            model_kwargs={'device': 'cpu'},
-            encode_kwargs={'normalize_embeddings': True}
+        hf_token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
+        if not hf_token:
+            raise ValueError("HUGGINGFACEHUB_API_TOKEN not found in environment.")
+
+        embeddings = HuggingFaceInferenceAPIEmbeddings(
+            api_key=hf_token,
+            model_name="BAAI/bge-small-en-v1.5"
         )
 
         # 2. Initialize Sub-Modules
