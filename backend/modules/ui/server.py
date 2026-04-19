@@ -3,6 +3,7 @@ import uuid
 import sqlite3
 from datetime import datetime
 from typing import List
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
