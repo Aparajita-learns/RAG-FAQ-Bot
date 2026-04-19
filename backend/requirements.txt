@@ -1,7 +1,6 @@
 # Specialized for Low-Memory environments (512MB RAM)
 # Using Hugging Face Inference API instead of local models
 
-langchain-huggingface==0.0.1
 langchain-community==0.0.34
 langchain-groq
 langchain-chroma

@@ -1,6 +1,7 @@
 import os
+import requests
+from typing import List
 from langchain_groq import ChatGroq
-from langchain_huggingface import HuggingFaceInferenceAPIEmbeddings
 from .guardrails import Guardrails
 from .search import Searcher
 from .augmenter import Augmenter
@@ -17,15 +18,29 @@ class QueryProcessor:
             model_name="llama-3.1-8b-instant",
             groq_api_key=groq_api_key
         )
-        
+
         hf_token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
         if not hf_token:
             raise ValueError("HUGGINGFACEHUB_API_TOKEN not found in environment.")
 
-        embeddings = HuggingFaceInferenceAPIEmbeddings(
-            api_key=hf_token,
-            model_name="BAAI/bge-small-en-v1.5"
-        )
+        # Custom Lightweight Embedding Client (No heavy dependencies)
+        class RemoteEmbeddings:
+            def __init__(self, token, model_name):
+                self.token = token
+                self.api_url = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{model_name}"
+            
+            def _get_embedding(self, text):
+                headers = {"Authorization": f"Bearer {self.token}"}
+                response = requests.post(self.api_url, headers=headers, json={"inputs": text})
+                return response.json()
+
+            def embed_documents(self, texts: List[str]) -> List[List[float]]:
+                return [self._get_embedding(t) for t in texts]
+
+            def embed_query(self, text: str) -> List[float]:
+                return self._get_embedding(text)
+
+        embeddings = RemoteEmbeddings(hf_token, "BAAI/bge-small-en-v1.5")
 
         # 2. Initialize Sub-Modules
         self.guardrails = Guardrails(self.llm)

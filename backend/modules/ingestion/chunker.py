@@ -1,8 +1,9 @@
 import os
 import glob
+import requests
+from typing import List
 from bs4 import BeautifulSoup
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceInferenceAPIEmbeddings
 
 class Chunker:
     def __init__(self, chunk_size=1000, chunk_overlap=100):
@@ -19,10 +20,29 @@ class Chunker:
             # We fail early if token is missing
             raise ValueError("HUGGINGFACEHUB_API_TOKEN not found for Chunker.")
 
-        self.embeddings = HuggingFaceInferenceAPIEmbeddings(
-            api_key=hf_token,
-            model_name=self.model_name
-        )
+        hf_token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
+        if not hf_token:
+            raise ValueError("HUGGINGFACEHUB_API_TOKEN not found for Chunker.")
+
+        # Custom Lightweight Embedding Client (Shared with coordinator)
+        class RemoteEmbeddings:
+            def __init__(self, token, model_name):
+                self.token = token
+                self.api_url = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{model_name}"
+            
+            def _get_embedding(self, text):
+                headers = {"Authorization": f"Bearer {self.token}"}
+                response = requests.post(self.api_url, headers=headers, json={"inputs": text})
+                return response.json()
+
+            def embed_documents(self, texts: List[str]) -> List[List[float]]:
+                # To minimize HTTP overhead, we process each text separately in the trial API
+                return [self._get_embedding(t) for t in texts]
+
+            def embed_query(self, text: str) -> List[float]:
+                return self._get_embedding(text)
+
+        self.embeddings = RemoteEmbeddings(hf_token, self.model_name)
 
     def parse_html(self, filepath):
         """Parses a local HTML file and returns clean text."""
